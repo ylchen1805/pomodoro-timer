@@ -268,9 +268,9 @@ run_timer() {
             
             # Check for keyboard input (non-blocking)
             if IFS= read -s -t 1 -n 1 key 2>/dev/null; then
-                while IFS= read -s -t 0.05 -n 1 2>/dev/null; do :; done
                 case $key in
                     ' ') # Space - pause/resume
+                        while IFS= read -s -t 0.05 -n 1 2>/dev/null; do :; done
                         PAUSED=true
                         echo -e "\n${YELLOW}⏸️  PAUSED - Press SPACE to resume${NC}"
                         continue
@@ -295,15 +295,24 @@ run_timer() {
         else
             # Paused state
             if IFS= read -s -t 1 -n 1 key 2>/dev/null; then
-                while IFS= read -s -t 0.05 -n 1 2>/dev/null; do :; done
                 case $key in
                     ' ') # Space - resume
+                        while IFS= read -s -t 0.05 -n 1 2>/dev/null; do :; done
                         PAUSED=false
                         echo -e "\r${GREEN}▶️  RESUMED                    ${NC}"
                         ;;
                     'q'|'Q') # Quit
                         echo -e "\n${RED}❌ Session cancelled${NC}"
                         return 1
+                        ;;
+                    's'|'S') # Skip
+                        echo -e "\n${YELLOW}⏭️  Session skipped${NC}"
+                        break
+                        ;;
+                    'r'|'R') # Reset
+                        remaining_seconds=$total_seconds
+                        PAUSED=false
+                        echo -e "\n${BLUE}🔄 Timer reset${NC}"
                         ;;
                 esac
             fi
