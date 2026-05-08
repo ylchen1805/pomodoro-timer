@@ -182,12 +182,27 @@ send_notification() {
     local title="$1"
     local message="$2"
     local sound="$3"
-    
+
+    # Always ring terminal bell as a reliable alert
+    printf '\a'
+
     if [ "$NOTIFICATIONS_ENABLED" = true ]; then
+        local notif_error
         if [ "$SOUND_ENABLED" = true ] && [ -n "$sound" ]; then
-            osascript -e "display notification \"$message\" with title \"$title\" sound name \"$sound\""
+            notif_error=$(osascript -e "display notification \"$message\" with title \"$title\" sound name \"$sound\"" 2>&1)
         else
-            osascript -e "display notification \"$message\" with title \"$title\""
+            notif_error=$(osascript -e "display notification \"$message\" with title \"$title\"" 2>&1)
+        fi
+
+        # If osascript failed or returned output (indicating an error), warn the user
+        if [ -n "$notif_error" ]; then
+            echo -e "\n${YELLOW}⚠️  Notification error: $notif_error${NC}"
+            echo -e "${YELLOW}   Check System Settings > Notifications > [your terminal app]${NC}"
+        fi
+
+        # Audible fallback via say command
+        if [ "$SOUND_ENABLED" = true ]; then
+            say "$title. $message" 2>/dev/null &
         fi
     fi
 }
